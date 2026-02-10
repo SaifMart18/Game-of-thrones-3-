@@ -1,0 +1,86 @@
+import React, { useState, useCallback } from 'react';
+import { GameStatus, Question, Difficulty } from './types';
+import { fetchQuestions } from './services/geminiService';
+import { StartScreen } from './components/StartScreen';
+import { LoadingScreen } from './components/LoadingScreen';
+import { GameScreen } from './components/GameScreen';
+import { EndScreen } from './components/EndScreen';
+import { ErrorScreen } from './components/ErrorScreen';
+
+const App: React.FC = () => {
+  const [status, setStatus] = useState<GameStatus>(GameStatus.START);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [score, setScore] = useState<number>(0);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [currentDifficulty, setCurrentDifficulty] = useState<Difficulty>(Difficulty.EASY);
+
+  const loadQuestions = useCallback(async (difficulty: Difficulty) => {
+    setStatus(GameStatus.LOADING);
+    setErrorMessage('');
+    setCurrentDifficulty(difficulty);
+    
+    try {
+      const data = await fetchQuestions(5, difficulty);
+      setQuestions(data);
+      setStatus(GameStatus.PLAYING);
+      setScore(0);
+    } catch (error: any) {
+      console.error('Failed to load questions:', error);
+      setErrorMessage(error.message || 'حدث خطأ غير متوقع');
+      setStatus(GameStatus.ERROR);
+    }
+  }, []);
+
+  const handleStart = (difficulty: Difficulty) => {
+    loadQuestions(difficulty);
+  };
+
+  const handleFinish = (finalScore: number) => {
+    setScore(finalScore);
+    setStatus(GameStatus.FINISHED);
+  };
+
+  const handleRestart = () => {
+    setStatus(GameStatus.START);
+    setQuestions([]);
+    setScore(0);
+  };
+
+  const handleRetry = () => {
+    loadQuestions(currentDifficulty);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-4 sm:p-8">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+        <div className="absolute top-[20%] right-[-10%] w-96 h-96 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+      </div>
+
+      <main className="relative z-10 w-full max-w-4xl h-[80vh] min-h-[500px] flex flex-col items-center justify-center">
+        {status === GameStatus.START && (
+          <StartScreen onStart={handleStart} />
+        )}
+        
+        {status === GameStatus.LOADING && (
+          <LoadingScreen />
+        )}
+        
+        {status === GameStatus.PLAYING && questions.length > 0 && (
+          <GameScreen questions={questions} onFinish={handleFinish} />
+        )}
+        
+        {status === GameStatus.FINISHED && (
+          <EndScreen score={score} total={questions.length} onRestart={handleRestart} />
+        )}
+        
+        {status === GameStatus.ERROR && (
+          <ErrorScreen onRetry={handleRetry} error={errorMessage} />
+        )}
+      </main>
+    </div>
+  );
+};
+
+export default App;

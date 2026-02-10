@@ -1,0 +1,64 @@
+import React from 'react';
+import { Button } from './Button';
+
+interface EndScreenProps {
+  score: number;
+  total: number;
+  onRestart: () => void;
+}
+
+export const EndScreen: React.FC<EndScreenProps> = ({ score, total, onRestart }) => {
+  const percentage = Math.round((score / total) * 100);
+  
+  let message = '';
+  let emoji = '';
+  
+  if (percentage === 100) {
+    message = 'عبقري! أداء مثالي';
+    emoji = '🏆';
+  } else if (percentage >= 70) {
+    message = 'عمل رائع! نتيجة ممتازة';
+    emoji = '🌟';
+  } else if (percentage >= 40) {
+    message = 'جيد، لكن يمكنك تقديم أداء أفضل';
+    emoji = '👍';
+  } else {
+    message = 'حظاً أوفر في المرة القادمة!';
+    emoji = '😅';
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center h-full text-center space-y-8 animate-in slide-in-from-bottom-8 duration-500">
+      <div className="text-6xl animate-bounce mb-4">{emoji}</div>
+      
+      <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-32 h-32 rounded-full bg-indigo-50 opacity-50"></div>
+        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-40 h-40 rounded-full bg-purple-50 opacity-50"></div>
+        
+        <h2 className="text-3xl font-bold text-gray-800 mb-2 relative z-10">النتيجة النهائية</h2>
+        <p className="text-gray-500 mb-6 relative z-10">{message}</p>
+        
+        <div className="flex items-center justify-center space-x-4 rtl:space-x-reverse mb-8 relative z-10">
+          <div className="flex flex-col items-center">
+            <span className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 to-purple-600">
+              {score}
+            </span>
+            <span className="text-sm font-bold text-gray-400 mt-1">إجابة صحيحة</span>
+          </div>
+          <span className="text-4xl text-gray-300 font-light">/</span>
+          <div className="flex flex-col items-center">
+            <span className="text-4xl font-bold text-gray-400">{total}</span>
+            <span className="text-sm font-bold text-gray-400 mt-1">الأسئلة</span>
+          </div>
+        </div>
+      </div>
+
+      <Button onClick={onRestart} className="px-10 py-4 rounded-full text-xl shadow-lg">
+        العب مرة أخرى
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      </Button>
+    </div>
+  );
+};
